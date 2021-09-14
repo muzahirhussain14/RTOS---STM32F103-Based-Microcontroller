@@ -1,0 +1,3 @@
+Dependencies for Project 'General-Purpose Timers', Target 'Target 1': (DO NOT MODIFY !)
+F (.\startup_stm32f10x_md.s)(0x58E9F467)(-mcpu=cortex-m3 -mthumb --gdwarf-2 -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x--MD ./startup_stm32f10x_md.d -o ./startup_stm32f10x_md.o)
+F (.\TIM4.c)(0x5AA6E415)(-c -mcpu=cortex-m3 -mthumb -gdwarf-2 -MD -Wall -O -mapcs-frame -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x-o ./tim4.o)

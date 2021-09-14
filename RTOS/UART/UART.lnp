@@ -1,0 +1,1 @@
+-T ./stm32_flash.ld -mcpu=cortex-m3 -mthumb -mthumb-interwork -o "./UART.elf" "./startup_stm32f10x_md.o" "./usart2.o" "./usart3.o" "./highspeed_usart1.o" -nostartfiles -nodefaultlibs

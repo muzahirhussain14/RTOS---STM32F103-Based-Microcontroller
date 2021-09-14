@@ -1,0 +1,3 @@
+Dependencies for Project 'SysTick', Target 'Target 1': (DO NOT MODIFY !)
+F (.\main.c)(0x59BD42C7)(-c -mcpu=cortex-m3 -mthumb -gdwarf-2 -MD -Wall -O -mapcs-frame -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x-o ./main.o)
+F (.\startup_stm32f10x_md.s)(0x58DBCA91)(-mcpu=cortex-m3 -mthumb --gdwarf-2 -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x--MD ./startup_stm32f10x_md.d -o ./startup_stm32f10x_md.o)

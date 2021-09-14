@@ -1,0 +1,1 @@
+-T ./stm32_flash.ld -mcpu=cortex-m4 -mthumb -mthumb-interwork -o "./Rough.elf" "./rough.o" "./startup_stm32f10x_md.o" -nostartfiles -nodefaultlibs

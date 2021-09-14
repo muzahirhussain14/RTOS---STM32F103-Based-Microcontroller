@@ -1,0 +1,5 @@
+Dependencies for Project 'UART', Target 'Target 1': (DO NOT MODIFY !)
+F (.\startup_stm32f10x_md.s)(0x58E9F467)(-mcpu=cortex-m3 -mthumb --gdwarf-2 -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x--MD ./startup_stm32f10x_md.d -o ./startup_stm32f10x_md.o)
+F (.\usart2.c)(0x5A68C8F3)(-c -mcpu=cortex-m3 -mthumb -gdwarf-2 -MD -Wall -O -mapcs-frame -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x-o ./usart2.o)
+F (.\usart3.c)(0x5A68C9B3)(-c -mcpu=cortex-m3 -mthumb -gdwarf-2 -MD -Wall -O -mapcs-frame -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x-o ./usart3.o)
+F (.\highspeed_usart1.c)(0x5A68C887)(-c -mcpu=cortex-m3 -mthumb -gdwarf-2 -MD -Wall -O -mapcs-frame -mthumb-interwork -IC:/Keil/ARM/CMSIS/Include -IC:/Keil/ARM/Inc/ST/STM32F10x-o ./highspeed_usart1.o)

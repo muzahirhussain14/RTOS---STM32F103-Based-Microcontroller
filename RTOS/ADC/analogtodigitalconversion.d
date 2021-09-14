@@ -1,0 +1,1 @@
+analogtodigitalconversion.o: AnalogToDigitalConversion.c

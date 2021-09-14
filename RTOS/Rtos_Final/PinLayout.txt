@@ -1,0 +1,2 @@
+STM32F103RB Pinlayout:
+https://os.mbed.com/platforms/ST-Nucleo-F103RB/

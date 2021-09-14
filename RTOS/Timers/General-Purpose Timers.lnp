@@ -1,0 +1,1 @@
+-T ./stm32_flash.ld -mcpu=cortex-m3 -mthumb -mthumb-interwork -o "./General-Purpose Timers.elf" "./startup_stm32f10x_md.o" "./tim4.o" -nostartfiles -nodefaultlibs

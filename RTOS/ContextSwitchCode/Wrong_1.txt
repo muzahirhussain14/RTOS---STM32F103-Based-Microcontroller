@@ -1,0 +1,220 @@
+#define STK_CTRL     (*((volatile unsigned long*) 0xE000E010))					// sysTick configuration register
+#define STK_LOAD     (*((volatile unsigned long*) 0xE000E014))					// sysTick load value register
+#define STK_VAL      (*((volatile unsigned long*) 0xE000E018))					// systick Current Value Register(Not Used)
+	
+#define STK_CALIB    (*((volatile unsigned long*) 0xE000E01C))					/*  SysTick Calibration Value Register is a read-only register
+																																						that contains the number of pulses for a period of 10ms.
+																																						We can use this Register to scale your value for the 
+																																						Reload register, to generate an event at a timed interval,
+																																						for example 1ms (Not Used)*/
+#define GPIOB_CRL    (*((volatile unsigned long*) 0x40010C00))
+#define GPIOB_BSRR   (*((volatile unsigned long*) 0x40010C10))		
+
+const int STACK_SIZE = 96;			 // 64 bytes for register, 28 bytes for stack push/pop
+const void* const baseAddress = 0x3FFFFC00;
+
+int totalProcesses = 1;					 // At the start, there will be only one process
+int currentProcess = 0;					 // keeps track of which process is running, at any time (ith + 1) is running.
+
+void* pointer = 0;							 // pointer = null
+
+void Init()
+{
+	// LED INIT
+	GPIOB_CRL &= 0xFFFFFF0F;
+	GPIOB_CRL |= 0x00000020;
+	
+	STK_LOAD = 0x00000FF;					// Value in Load register (72hz/1000)ms
+	
+	//start the timer...
+	STK_CTRL = 0x00000007;				// Use Processor Clock, asserts the SysTick exception request, SysTick Start
+}
+
+void SaveRegisters()
+{
+__asm volatile(				
+			".global currentProcess\n\t"
+			".global baseAddress\n\t"
+			".global STACK_SIZE\n\t"
+
+			"PUSH {R0, R1}\n\t"												// saving the value of r0,r1 and using r0 to hold the address, r1 for processing
+			"LDR R1, =currentProcess\n\t"
+			"LDR R1, [R1, #0]\n\t"
+			"LDR R0, =STACK_SIZE\n\t"
+			"LDR R0, [R0, #0]\n\t"										// size of single stack
+			"MUL R1, R1, R0\n\t"											// multiply r1(current process no.) with 60(size of stack) to get offset and store it in r1
+			"LDR R0, =baseAddress\n\t"								// base address in r0
+			"LDR R0, [R0,#0]\n\t"
+			"ADD R0, R1\n\t"													// add (offset) to base address to get to the right stack
+	
+			"STR R2, [R0,#8]\n\t"
+			"STR R3, [R0,#12]\n\t"
+			"STR R4, [R0,#16]\n\t"
+			"STR R5, [R0,#20]\n\t"
+			"STR R6, [R0,#24]\n\t"
+			"STR R7, [R0,#28]\n\t"
+			"STR R8, [R0,#32]\n\t"
+			"STR R9, [R0,#36]\n\t"
+			"STR R10, [R0,#40]\n\t"
+			"STR R11, [R0,#44]\n\t"
+			"STR R12, [R0,#48]\n\t"
+			"STR R13, [R0,#52]\n\t"
+			"STR R14, [R0,#56]\n\t"
+			
+			"MOV R3,R0\n\t"												// moving the address to r3
+			"POP {R0}\n\t"
+			"POP {R1}\n\t"
+			"STR R0, [R3,#0]\n\t"									// storing the value of r0
+			"STR R1, [R3,#4]\n\t"									// storing the value of r1
+			
+			// Thumb mode does not allow to directly move pc to memory location, therefore using an indirect method.
+			"MOV R0, R15\n\t"
+			"STR R0, [R3, #60]\n\t"
+	);
+}
+
+void LoadRegisters()
+{	
+__asm volatile(
+			".global currentProcess\n\t"
+			".global baseAddress\n\t"
+			".global STACK_SIZE\n\t"
+
+			"LDR R1, =currentProcess\n\t"           
+			"LDR R1, [R1, #0]\n\t"                  
+			"LDR R0, =STACK_SIZE\n\t"
+			"LDR R0, [R0, #0]\n\t"										// size of single stack
+			"MUL R1, R1, R0\n\t"										
+			"LDR R0, =baseAddress\n\t"								// base address in r0
+			"LDR R0, [R0,#0]\n\t"               
+			"ADD R0, R1\n\t"												
+
+			"LDR R3, [R0,#12]\n\t"
+			"LDR R4, [R0,#16]\n\t"
+			"LDR R5, [R0,#20]\n\t"
+			"LDR R6, [R0,#24]\n\t"
+			"LDR R7, [R0,#28]\n\t"
+			"LDR R8, [R0,#32]\n\t"
+			"LDR R9, [R0,#36]\n\t"
+			"LDR R10, [R0,#40]\n\t"
+			"LDR R11, [R0,#44]\n\t"
+			"LDR R12, [R0,#48]\n\t"
+			
+			"LDR R13, [R0, #52]\n\t"			//SP
+			"LDR R14, [R0,#56]\n\t"				//LR
+			
+			"LDR R1, [R0, #64]\n\t"				// Reading Program Status Register
+			"MSR PSR, R1\n\t"							// Move program Status Register to psr register
+			
+			"LDR R1, [R0, #60]\n\t"				// storing the value of pc to r1
+			"PUSH {R1}\n\t"								// pushing PC value to stack			
+			
+			//start the timer...
+			"LDR R1, =0xE000E010\n\t"			//STK_CTRL = 0x00000007;
+			"MOV R2, 00000007\n\t"
+			"STR R2, [R1,#0]\n\t"			
+			
+			//loading remaining registers...
+			"LDR R2, [R0,#8]\n\t"			
+			"LDR R1, [R0,#4]\n\t"
+			"LDR R0, [R0,#0]\n\t"
+			
+			"POP {R15}\n\t"								// moving PC value to r15 at the end
+	);
+}
+
+void SysTick_Handler(void)			// Interrupt service routines
+{
+	// performing context switching, saving and loading registers
+	
+		if(totalProcesses > 1)		  // If more then 1 tasks are schedulled, then perform context switching.
+		{
+			//Stopping SysTick timer
+			STK_CTRL = 0x00000000;
+		
+			//contexting switching...
+			SaveRegisters();
+			currentProcess = (currentProcess + 1) % totalProcesses;
+			LoadRegisters();
+		}
+}
+
+
+int Create_Task(void* funcAddr)
+{
+	/*
+		if(totalProcessOutOfRange)
+			return 0;
+	
+		else
+		{
+	*/	
+	pointer = funcAddr;
+
+	__asm volatile(
+		".global totalProcesses\n\t"											// Accessing C global variable, "totalProcesses"
+		".global pointer\n\t"															// Accessing C global variable, "pointer", holding func. address
+		".global baseAddress\n\t"													// Accessing C global variable, "totalProcesses"
+		".global STACK_SIZE\n\t"
+	
+		"LDR R0, =baseAddress\n\t"												// base address of stacks
+		"LDR R0, [R0,#0]\n\t"
+		"LDR R1, =totalProcesses\n\t"											// load totalProcesses address to r1		
+		"LDR R1, [R1, #0]\n\t"														// mov the value of totalProcesses to r1
+		"LDR R2, =pointer\n\t"														// load pointer address in r2, pointer holds the address of the function
+		"LDR R2, [R2, #0]\n\t"														// load pointer contents (i.e. function address) in r2
+		
+		"LDR R3, =STACK_SIZE\n\t"
+		"LDR R3, [R3, #0]\n\t"														// size of single stack
+	
+		"MUL R1, R1, R3\n\t"															// calculating the offset to get to the new stack		
+		"ADD R0, R1\n\t"																	// adding the offset to base address of stacks to get to new stack
+	
+		"MOV R1, R0\n\t"
+		"ADD R1, R3\n\t"
+		
+		"STR R1, [R0, #52]\n\t"														// store address of stack end in SP
+		"STR R14, [R0, #56]\n\t"													// Link Register
+		"STR R2, [R0, #60]\n\t"														// writing functionAddress to program counter of new stack.
+		"MOV R4, 0x01000000\n\t"
+		"STR R4, [R0, #64]\n\t"														/* Program Status Register:
+																												 No flag bit set in new process, 
+																												 new process is in thumb state,
+																												 new process is in thread mode */
+		);
+	++totalProcesses;
+	return 1;																						// return success
+}
+
+void LED_Off(void)
+{
+	__asm(
+		"PUSH {R0}\n\t"
+		"PUSH {R1}\n\t"
+		"PUSH {R2}\n\t"
+		"PUSH {R3}\n\t"
+		"PUSH {R4}\n\t"
+		"PUSH {R5}\n\t"
+		"PUSH {R6}\n\t"	
+	);
+	
+	while(1)
+		GPIOB_BSRR = 0x00020000;
+}
+
+int main(void)
+{
+	Init();
+	Create_Task(LED_Off);	
+	
+	while(1)
+	{		
+		GPIOB_BSRR = 0x00000002; 
+	}
+	
+	return (1);
+}
+	
+void SystemInit(void)
+{
+}
